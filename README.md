@@ -6,6 +6,8 @@
 
 
 Пример запроса полностью:
+
+
 import requests
 
 headers = {"Content-Type": "application/json", "X-Auth-Token": "4CE7B412-49B7-3DCF-B56D-3441B6A3698A"}
