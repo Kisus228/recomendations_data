@@ -11,12 +11,11 @@ dates = {'start': '01.01.2018', 'finish': '01.02.2018'}
 
 urlData = requests.post(url, json=dates, headers=headers)
 
-# with open(urlData.json()) as json_file:
-#     data = json.load(json_file)
+
 parsed = json.loads(urlData.json())
 parsed.sort(key=operator.itemgetter('INN'))
-for x in(parsed):
+for x in parsed:
     print(x)
-#print(urlData.json())
+
 
 print(urlData.status_code)
