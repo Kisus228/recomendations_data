@@ -18,7 +18,7 @@ headers = {"Content-Type": "application/json", "X-Auth-Token": "4CE7B412-49B7-3D
 
 url = 'http://localhost:8080/execmodel'
 
-dates = {'start': '01.01.2018', 'finish': '01.02.2018'}
+dates = {'start': input('Введите дату начала выбоки в формате ДД.ММ.ГГГГ\n'), 'finish': input('Введите дату конца выбоки в формате ДД.ММ.ГГГГ\n')}
 
 urlData = createUrlData(url, dates, headers)
 
