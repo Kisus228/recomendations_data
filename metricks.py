@@ -2,4 +2,5 @@ import json
 
 
 def getMetricks(data):
-    print(data)
+    for e in data:
+        print(e)

@@ -22,8 +22,8 @@ dates = {'start': input('Введите дату начала выбоки в ф
 
 urlData = createUrlData(url, dates, headers)
 
-urlData = getSortedData(urlData, 'INN')
+data_base = getSortedData(urlData, 'INN')
 
-metricks.getMetricks(urlData)
+metricks.getMetricks(data_base)
 
 print(urlData.status_code)
