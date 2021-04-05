@@ -28,7 +28,7 @@ def is_actual(recommended_time, event_time):
     return True
 
 
-def getAccuracy(groups):
+def get_accuracy(groups):
     true_positive = 0
     true_negative = 0
     false_positive = 0
@@ -53,6 +53,6 @@ def getAccuracy(groups):
     return (true_negative + true_positive) / (true_negative + true_positive + false_negative + false_positive)
 
 
-def getMetricks(data):
+def get_metrics(data):
     groups = create_groups(data)
-    return getAccuracy(groups)
+    return get_accuracy(groups)

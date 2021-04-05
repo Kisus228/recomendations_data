@@ -32,6 +32,6 @@ urlData = createUrlData(url, dates, headers)
 data_base = getSortedData(urlData, 'INN')
 time_for_people(data_base)
 
-accuracy = metrics.getMetricks(data_base)
+accuracy = metrics.get_metrics(data_base)
 print(accuracy)
 print(urlData.status_code)
