@@ -11,14 +11,19 @@ def create_groups(data):
     return groups
 
 
-def is_actual(rec_time, event_time):
-    rec_day = int(rec_time.split()[0].split('.')[0])
-    rec_month = int(rec_time.split()[0].split('.')[1])
-    rec_year = int(rec_time.split()[0].split('.')[2])
-    event_day = int(event_time.split()[0].split('.')[0])
-    event_month = int(event_time.split()[0].split('.')[1])
-    event_year = int(event_time.split()[0].split('.')[2])
-    if event_year - rec_year > 0 or event_month - rec_month > 0 or event_day - rec_day > 2:
+def is_actual(recommended_time, event_time):
+    recommended_date = recommended_time.split()[0].split('.')
+    event_date = event_time.split()[0].split('.')
+
+    rec_day = int(recommended_date[0])
+    rec_month = int(recommended_date[1])
+    rec_year = int(recommended_date[2])
+
+    event_day = int(event_date[0])
+    event_month = int(event_date[1])
+    event_year = int(event_date[2])
+
+    if event_year > rec_year or event_month > rec_month or event_day > rec_day + 7:
         return False
     return True
 

@@ -1,7 +1,7 @@
 import requests
 import json
 import operator as op
-import metricks
+import metrics
 import time
 
 
@@ -32,6 +32,6 @@ urlData = createUrlData(url, dates, headers)
 data_base = getSortedData(urlData, 'INN')
 time_for_people(data_base)
 
-accuracy = metricks.getMetricks(data_base)
+accuracy = metrics.getMetricks(data_base)
 print(accuracy)
 print(urlData.status_code)
