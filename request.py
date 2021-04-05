@@ -18,8 +18,8 @@ headers = {"Content-Type": "application/json", "X-Auth-Token": "4CE7B412-49B7-3D
 
 url = 'http://localhost:8080/execmodel'
 
-dates = {'start': input('Введите дату начала выбоки в формате ДД.ММ.ГГГГ\n'), 'finish': input('Введите дату конца выбоки в формате ДД.ММ.ГГГГ\n')}
-
+#dates = {'start': input('Введите дату начала выбоки в формате ДД.ММ.ГГГГ\n'), 'finish': input('Введите дату конца выбоки в формате ДД.ММ.ГГГГ\n')}
+dates = {'start': '01.01.2018', 'finish': '01.12.2018'}
 urlData = createUrlData(url, dates, headers)
 
 data_base = getSortedData(urlData, 'INN')
