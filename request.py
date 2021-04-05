@@ -2,6 +2,7 @@ import requests
 import json
 import operator as op
 import metricks
+import time
 
 
 def createUrlData(url, dates, headers):
@@ -14,6 +15,12 @@ def getSortedData(data, key):
     return parsed
 
 
+def time_for_people(bd):
+    for e in bd:
+        lt = time.localtime(int(e['DATE'])/1000)
+        e['DATE'] = f'{lt.tm_mday}.{lt.tm_mon}.{lt.tm_year}  {lt.tm_hour}:{lt.tm_min}:{lt.tm_sec}'
+
+
 headers = {"Content-Type": "application/json", "X-Auth-Token": "4CE7B412-49B7-3DCF-B56D-3441B6A3698A"}
 
 url = 'http://localhost:8080/execmodel'
@@ -23,6 +30,7 @@ dates = {'start': '01.01.2018', 'finish': '01.12.2018'}
 urlData = createUrlData(url, dates, headers)
 
 data_base = getSortedData(urlData, 'INN')
+time_for_people(data_base)
 
 metricks.getMetricks(data_base)
 
