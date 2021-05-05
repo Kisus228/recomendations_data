@@ -1,3 +1,6 @@
+from time import localtime
+
+
 def create_groups(data):
     groups = dict()
     current = data[0]['INN']
@@ -12,16 +15,16 @@ def create_groups(data):
 
 
 def is_actual(recommended_time, event_time):
-    recommended_date = recommended_time.split()[0].split('.')
-    event_date = event_time.split()[0].split('.')
+    event_date = localtime(int(event_time)/1000)
+    rec_time = localtime(int(recommended_time)/1000)
 
-    rec_day = int(recommended_date[0])
-    rec_month = int(recommended_date[1])
-    rec_year = int(recommended_date[2])
+    rec_day = rec_time.tm_mday
+    rec_month = rec_time.tm_mon
+    rec_year = rec_time.tm_year
 
-    event_day = int(event_date[0])
-    event_month = int(event_date[1])
-    event_year = int(event_date[2])
+    event_day = event_date.tm_mday
+    event_month = event_date.tm_mon
+    event_year = event_date.tm_year
 
     if event_year > rec_year or event_month > rec_month or event_day > rec_day + 7:
         return False
