@@ -1,6 +1,6 @@
 import aiohttp
 import asyncio
-from calculations import get_groups_bd, get_dict_month_metric
+from calculations_1 import get_groups_bd, get_dict_day_metric
 
 
 async def run_session():
@@ -13,7 +13,7 @@ async def run_session():
 async def create_url_data(session):
     async with session.post(url, json=dates, headers=headers) as response:
         data = await response.json()
-        dict_month_metric = get_dict_month_metric(get_groups_bd(data))
+        dict_month_metric = get_dict_day_metric(get_groups_bd(data))
         print_metrics(dict_month_metric)
         await asyncio.sleep(time_sleep)
 

@@ -1,7 +1,29 @@
 from time import localtime
+import time as tm
 
 
-def create_groups(data):
+def get_recommendation_period_in_seconds(period_in_days):
+    return period_in_days * 24 * 3600 * 1000
+
+
+recommendation_period = 7
+
+
+def set_recommendation_period(period):
+    global recommendation_period
+    recommendation_period = get_recommendation_period_in_seconds(period)
+
+
+def get_actual_events(events):
+    set_recommendation_period(7)
+    events_by_last_seven_days = []
+    for event in events:
+        if int(event['DATE']) + recommendation_period >= int(events[len(events) - 1]['DATE']):
+            events_by_last_seven_days.append(event)
+    return events_by_last_seven_days
+
+
+def create_groups(data):  # возвращает группы действий по одному инн, т.е. несколько действий одного пользователя
     groups = dict()
     current = data[0]['INN']
     groups[current] = []
@@ -15,8 +37,8 @@ def create_groups(data):
 
 
 def is_actual(recommended_time, event_time):
-    event_date = localtime(int(event_time)/1000)
-    rec_time = localtime(int(recommended_time)/1000)
+    event_date = localtime(int(event_time) / 1000)
+    rec_time = localtime(int(recommended_time) / 1000)
 
     rec_day = rec_time.tm_mday
     rec_month = rec_time.tm_mon
@@ -57,5 +79,7 @@ def get_accuracy(groups):
 
 
 def get_metrics(data):
+    data = get_actual_events(data)
+    print(data)
     groups = create_groups(data)
     return get_accuracy(groups)
