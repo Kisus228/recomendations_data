@@ -1,5 +1,4 @@
 # -*- coding: utf-8 -*-
-import time
 import click
 from routers import routes
 from aiohttp import web
