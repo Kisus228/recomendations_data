@@ -1,33 +1,29 @@
-import aiohttp
+import prometheus_client
+from aiohttp import web
+from prometheus_client import Gauge
 import asyncio
-from calculations_1 import get_groups_bd, get_dict_day_metric
+
+GAUGE_METRIC = Gauge('metrics_monitoring', 'data tracking')
 
 
-async def run_session():
-    async with aiohttp.ClientSession() as session:
-        while True:
-            task = asyncio.create_task(create_url_data(session))
-            await asyncio.gather(task)
+async def create_metrics_response(request):
+    resp = web.Response(body=prometheus_client.generate_latest())
+    resp.content_type = prometheus_client.CONTENT_TYPE_LATEST
+    return resp
 
 
-async def create_url_data(session):
-    async with session.post(url, json=dates, headers=headers) as response:
-        data = await response.json()
-        dict_month_metric = get_dict_day_metric(get_groups_bd(data))
-        print_metrics(dict_month_metric)
-        await asyncio.sleep(time_sleep)
+def keep_update_gauge():
+    pass
+    #TODO добавить асинхронное обновление метрики через while(true), и лучше с интервалом через asyncio.sleep(*время*). GAUGE_METRICS.set(*метрика*)
+    #TODO почистить проект от лишних методов вычислений. Я про файлы calculations_1 и calculations. Просто почистить проект
 
 
-def print_metrics(dict_month_metric):
-    for date, metric in dict_month_metric.items():
-        print(date, metric)
+def main():
+    httpApp = web.Application()
+    httpApp.router.add_get("/metrics", create_metrics_response)
+    keep_update_gauge()
+    web.run_app(httpApp)
 
 
-time_sleep = 10
-headers = {"Content-Type": "application/json", "X-Auth-Token": "4CE7B412-49B7-3DCF-B56D-3441B6A3698A"}
-url = 'http://localhost:8080/execmodel'
-dates = {'start': '01.01.2018', 'finish': '08.01.2018'}
-asyncio.run(run_session())
-
-#          'finish': input('Введите дату конца выбоки в формате ММ.ДД.ГГГГ\n')}
-# dates = {'start': input('Введите дату начала выбоки в формате ММ.ДД.ГГГГ\n'),
+if __name__ == '__main__':
+    main()
