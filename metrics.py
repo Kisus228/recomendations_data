@@ -1,85 +1,65 @@
-from time import localtime
-import time as tm
-
-
-def get_recommendation_period_in_seconds(period_in_days):
-    return period_in_days * 24 * 3600 * 1000
-
+from collections import defaultdict
 
 recommendation_period = 7
+buffer = []
+days = []
 
 
-def set_recommendation_period(period):
-    global recommendation_period
-    recommendation_period = get_recommendation_period_in_seconds(period)
+# Заполняет буфер из recommendation_period дней
+def update_actual_events(events):
+    global buffer
+    if len(buffer) > recommendation_period:
+        buffer.pop(0)
+        buffer.append(events)
+    else:
+        buffer.append(events)
 
 
-def get_actual_events(events):
-    set_recommendation_period(7)
-    events_by_last_seven_days = []
-    for event in events:
-        if int(event['DATE']) + recommendation_period >= int(events[len(events) - 1]['DATE']):
-            events_by_last_seven_days.append(event)
-    return events_by_last_seven_days
-
-
-def create_groups(data):  # возвращает группы действий по одному инн, т.е. несколько действий одного пользователя
-    groups = dict()
-    current = data[0]['INN']
-    groups[current] = []
+# возвращает группы действий по одному инн, т.е. несколько действий одного пользователя
+def create_groups(data):
+    groups = defaultdict(list)
     for e in data:
-        if e['INN'] == current:
-            groups[e['INN']].append({e['DATE']: e['EVENT']})
-        else:
-            current = e['INN']
-            groups[current] = [{e['DATE']: e['EVENT']}]
-    return groups
+        groups[e['INN']].append(e['EVENT'])
+    return groups, data[0]['DATE_DD_MM_YYYY']
 
 
-def is_actual(recommended_time, event_time):
-    event_date = localtime(int(event_time) / 1000)
-    rec_time = localtime(int(recommended_time) / 1000)
-
-    rec_day = rec_time.tm_mday
-    rec_month = rec_time.tm_mon
-    rec_year = rec_time.tm_year
-
-    event_day = event_date.tm_mday
-    event_month = event_date.tm_mon
-    event_year = event_date.tm_year
-
-    if event_year > rec_year or event_month > rec_month or event_day > rec_day + 7:
-        return False
-    return True
+def is_recommended(key):
+    for k in buffer:
+        for values in k:
+            if values['INN'] == key and values['EVENT'] == 'RECOMENDATION':
+                return True
+    return False
 
 
-def get_accuracy(groups):
-    true_positive = 0
-    true_negative = 0
-    false_positive = 0
-    false_negative = 0
+def get_accuracy(groups, day):
+    global buffer, days
+    true_positive, true_negative, false_positive, false_negative = 0, 0, 0, 0
+    update_global_variable(day)
+
     for key, values in groups.items():  # key - ИНН, values - список словарей (время: событие) каждого уникального
-        if len(values) == 1:
-            false_positive += 1  # пользователя
-        else:
-            r_time = 0
-            for event in values:  # события пользователя
-                if list(event.values())[0] == 'RECOMENDATION':
-                    r_time = list(event.keys())[0]
-                if list(event.values())[0] == 'PURCHASE' and r_time != 0:
-                    if is_actual(list(event.keys())[0], list(event.keys())[0]):
+        for event in values:  # события пользователя
+            if event == 'RECOMENDATION':
+                false_positive += 1
+            elif event == 'PURCHASE':
+                if values[0] == 'RECOMENDATION':
+                    true_positive += 1
+                    false_positive -= 1
+                else:
+                    day_update = is_recommended(key)
+                    if day_update is not None:
                         true_positive += 1
                     else:
-                        false_positive += 1
                         false_negative += 1
-                if list(event.values())[0] == 'PURCHASE' and r_time == 0:
-                    false_negative += 1
-    print(true_positive, true_negative, false_positive, false_negative)
     return (true_negative + true_positive) / (true_negative + true_positive + false_negative + false_positive)
 
 
+def update_global_variable(day):
+    days.append(day)
+    if len(days) > recommendation_period:
+        days.pop(0)
+
+
 def get_metrics(data):
-    data = get_actual_events(data)
-    print(data)
-    groups = create_groups(data)
-    return get_accuracy(groups)
+    update_actual_events(data)
+    groups, day = create_groups(data)
+    return get_accuracy(groups, day)

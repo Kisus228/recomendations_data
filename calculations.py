@@ -1,53 +1,57 @@
-import json
 import operator as op
 import metrics
 from time import localtime
 from itertools import groupby
+import random
+
+index = -1
 
 
 def get_sorted_data(data, key):
-    # parsed = json.loads(data.json())
-    parsed = json.loads(data)
+    parsed = data
     parsed.sort(key=op.itemgetter(key))
     return parsed
 
 
-def time_for_people(bd):
+def get_metric(data):
+    global index
+    dict_day_metric = get_day_metric_dict(get_groups_bd(data))
+    list_metric = list(dict_day_metric.values())
+    # random_index = random.randint(0, len(list_metric) - 1)
+    index += 1
+    return list_metric[index]
+
+
+# добавляет значение даты(день, месяц, год) в запись
+def add_time_dd_mm_yyyy(bd):
     for e in bd:
         lt = localtime(int(e['DATE'])/1000)
-        e['DATE'] = f'{lt.tm_mday}.{lt.tm_mon}.{lt.tm_year}  {lt.tm_hour}:{lt.tm_min}:{lt.tm_sec}'
+        e['DATE_DD_MM_YYYY'] = f'{lt.tm_mday}.{lt.tm_mon}.{lt.tm_year}'
     return bd
 
 
-def add_time_mm_yyyy(bd):
-    for e in bd:
-        lt = localtime(int(e['DATE'])/1000)
-        e['DATE_MM_YYYY'] = f'{lt.tm_mon}.{lt.tm_year}'
-    return bd
-
-
-def get_dict_month_metric(group_db):
-    month_metric = {}
+# возвращает словарь ключ - день, значение - значение метрики за этот день
+def get_day_metric_dict(group_db):
+    day_metric = {}
     for date, group in group_db.items():
-        month_metric[date] = metrics.get_metrics(group)
-    return month_metric
+        day_metric[date] = metrics.get_metrics(group)
+    return day_metric
 
 
-# Возвращает словарь ключ - дата(месяц, год), значение - список записей бд за этот месяц
+# Возвращает словарь ключ - дата(день, месяц, год), значение - список записей бд за этот месяц
 def get_groups_bd(bd):
-    data_base_sort_time = add_time_mm_yyyy(get_sorted_data(bd, 'DATE'))
+    data_base_sort_time = add_time_dd_mm_yyyy(get_sorted_data(bd, 'DATE'))
     groups_list_bd = {}
-    for i, action in groupby(data_base_sort_time, lambda x: x['DATE_MM_YYYY']):
+    for i, action in groupby(data_base_sort_time, lambda x: x['DATE_DD_MM_YYYY']):
         order_action = sorted(action, key=lambda x: x['INN'])
         groups_list_bd[i] = order_action
     return groups_list_bd
 
 
-def get_full_metric(group_bd, dict_metrics):
-    count_line = 0
-    metric = 0
-    for k, v in group_bd.items():
-        l = len(v)
-        count_line += l
-        metric += l * dict_metrics[k]
-    return metric/count_line
+def get_full_metric(dict_day_metrics: dict):
+    metrics_sum = 0
+    count_day = 0
+    for day, metric in dict_day_metrics.items():
+        count_day += 1
+        metrics_sum += metric
+    return metrics_sum / count_day
