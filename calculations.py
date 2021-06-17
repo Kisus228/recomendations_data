@@ -1,8 +1,7 @@
 import operator as op
-import metrics
 from time import localtime
 from itertools import groupby
-import random
+import metrics
 
 index = -1
 
@@ -15,11 +14,27 @@ def get_sorted_data(data, key):
 
 def get_metric(data):
     global index
-    dict_day_metric = get_day_metric_dict(get_groups_bd(data))
+    group_bd = get_groups_bd(data)
+    dict_day_metric = get_day_metric_dict(group_bd)
     list_metric = list(dict_day_metric.values())
-    # random_index = random.randint(0, len(list_metric) - 1)
     index += 1
     return list_metric[index]
+
+
+def get_metric_production(data: list):
+    group_db = get_groups_bd(data)
+    metric = metrics.get_metrics(group_db)
+    return metric
+
+
+# Возвращает словарь ключ - дата(день, месяц, год), значение - список записей бд за этот месяц
+def get_groups_bd(bd):
+    data_base_sort_time = add_time_dd_mm_yyyy(get_sorted_data(bd, 'DATE'))
+    groups_list_bd = {}
+    for i, action in groupby(data_base_sort_time, lambda x: x['DATE_DD_MM_YYYY']):
+        order_action = sorted(action, key=lambda x: x['INN'])
+        groups_list_bd[i] = order_action
+    return groups_list_bd
 
 
 # добавляет значение даты(день, месяц, год) в запись
@@ -34,18 +49,9 @@ def add_time_dd_mm_yyyy(bd):
 def get_day_metric_dict(group_db):
     day_metric = {}
     for date, group in group_db.items():
-        day_metric[date] = metrics.get_metrics(group)
+        # day_metric[date] = metrics.get_metrics(group)
+        day_metric[date] = metrics.get_metrics({date: group})
     return day_metric
-
-
-# Возвращает словарь ключ - дата(день, месяц, год), значение - список записей бд за этот месяц
-def get_groups_bd(bd):
-    data_base_sort_time = add_time_dd_mm_yyyy(get_sorted_data(bd, 'DATE'))
-    groups_list_bd = {}
-    for i, action in groupby(data_base_sort_time, lambda x: x['DATE_DD_MM_YYYY']):
-        order_action = sorted(action, key=lambda x: x['INN'])
-        groups_list_bd[i] = order_action
-    return groups_list_bd
 
 
 def get_full_metric(dict_day_metrics: dict):

@@ -1,18 +1,29 @@
 from collections import defaultdict
 
 recommendation_period = 7
-buffer = []
+buffer = defaultdict(list)
 days = []
 
 
+def get_metrics(data: dict):
+    update_actual_events(data)
+    records = []
+    for v in data.values():
+        records += v
+    groups = create_groups(records)
+    return get_accuracy(groups)
+
+
 # Заполняет буфер из recommendation_period дней
-def update_actual_events(events):
+def update_actual_events(bd):
+    days_event = list(bd.keys())
+    events = list(bd.values())
     global buffer
-    if len(buffer) > recommendation_period:
-        buffer.pop(0)
-        buffer.append(events)
-    else:
-        buffer.append(events)
+    for i, val in enumerate(days_event):
+        buffer[val].append(events[i])
+    if len(days) > recommendation_period:
+        day = days.pop(0)
+        buffer.pop(day)
 
 
 # возвращает группы действий по одному инн, т.е. несколько действий одного пользователя
@@ -20,21 +31,12 @@ def create_groups(data):
     groups = defaultdict(list)
     for e in data:
         groups[e['INN']].append(e['EVENT'])
-    return groups, data[0]['DATE_DD_MM_YYYY']
+    return groups
 
 
-def is_recommended(key):
-    for k in buffer:
-        for values in k:
-            if values['INN'] == key and values['EVENT'] == 'RECOMENDATION':
-                return True
-    return False
-
-
-def get_accuracy(groups, day):
+def get_accuracy(groups):
     global buffer, days
     true_positive, true_negative, false_positive, false_negative = 0, 0, 0, 0
-    update_global_variable(day)
 
     for key, values in groups.items():  # key - ИНН, values - список словарей (время: событие) каждого уникального
         for event in values:  # события пользователя
@@ -45,21 +47,16 @@ def get_accuracy(groups, day):
                     true_positive += 1
                     false_positive -= 1
                 else:
-                    day_update = is_recommended(key)
-                    if day_update is not None:
+                    if is_recommended(key):
                         true_positive += 1
                     else:
                         false_negative += 1
     return (true_negative + true_positive) / (true_negative + true_positive + false_negative + false_positive)
 
 
-def update_global_variable(day):
-    days.append(day)
-    if len(days) > recommendation_period:
-        days.pop(0)
-
-
-def get_metrics(data):
-    update_actual_events(data)
-    groups, day = create_groups(data)
-    return get_accuracy(groups, day)
+def is_recommended(key):
+    for k in buffer:
+        for values in k:
+            if values['INN'] == key and values['EVENT'] == 'RECOMENDATION':
+                return True
+    return False
