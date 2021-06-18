@@ -2,8 +2,17 @@ import operator as op
 from time import localtime
 from itertools import groupby
 import metrics
+import datetime
 
 index = -1
+
+
+def remove_yesterday_data(db, dates):
+    result = []
+    for day in db:
+        if day['DATE'] > datetime.datetime.strptime(dates['finish'], '%m.%d.%Y').timestamp() * 1000:
+            result.append(day)
+    return result
 
 
 def get_sorted_data(data, key):
@@ -12,16 +21,8 @@ def get_sorted_data(data, key):
     return parsed
 
 
-def get_metric(data):
-    global index
-    group_bd = get_groups_bd(data)
-    dict_day_metric = get_day_metric_dict(group_bd)
-    list_metric = list(dict_day_metric.values())
-    index += 1
-    return list_metric[index]
-
-
-def get_metric_production(data: list):
+def get_metric(data: list, dates):
+    data = remove_yesterday_data(data, dates)
     group_db = get_groups_bd(data)
     metric = metrics.get_metrics(group_db)
     return metric
@@ -30,6 +31,7 @@ def get_metric_production(data: list):
 # Возвращает словарь ключ - дата(день, месяц, год), значение - список записей бд за этот месяц
 def get_groups_bd(bd):
     data_base_sort_time = add_time_dd_mm_yyyy(get_sorted_data(bd, 'DATE'))
+    print(111, data_base_sort_time)
     groups_list_bd = {}
     for i, action in groupby(data_base_sort_time, lambda x: x['DATE_DD_MM_YYYY']):
         order_action = sorted(action, key=lambda x: x['INN'])
@@ -49,7 +51,6 @@ def add_time_dd_mm_yyyy(bd):
 def get_day_metric_dict(group_db):
     day_metric = {}
     for date, group in group_db.items():
-        # day_metric[date] = metrics.get_metrics(group)
         day_metric[date] = metrics.get_metrics({date: group})
     return day_metric
 
