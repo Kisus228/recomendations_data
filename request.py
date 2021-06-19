@@ -22,7 +22,6 @@ def update_dates():
     start = datetime.datetime.strptime(start, '%m.%d.%Y') + datetime.timedelta(days=1)
     finish = datetime.datetime.strptime(finish, '%m.%d.%Y') + datetime.timedelta(days=1)
     dates['start'], dates['finish'] = f'{start.month}.{start.day}.{start.year}', f'{finish.month}.{finish.day}.{finish.year}'
-    print(start.date(), finish.date())
 
 
 async def keep_update_gauge():
@@ -36,7 +35,7 @@ async def create_url_data(session):
     async with session.post(url, json=dates, headers=headers) as response:
         data = await response.json()
         data = loads(data)
-        metric = get_metric(data, dates)
+        metric = get_metric(data, dates['finish'])
         GAUGE_METRIC.set(metric)
         update_dates()
         print(metric)
@@ -61,5 +60,3 @@ url = 'http://localhost:8080/execmodel'
 
 if __name__ == '__main__':
     main()
-
-
